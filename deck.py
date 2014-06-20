@@ -4,9 +4,8 @@
 #        is a question, the other side
 #        is the answer.
 #
-#
-#
-#
+
+import re
 
 from random import shuffle
 class Card:
@@ -51,6 +50,7 @@ class Card:
 #    The deck can be traversed linearly
 #    or it can be shuffled.
 #
+
 class Deck:
     def __init__(self, cards=[]):
         self._cards = cards
@@ -96,7 +96,6 @@ class Deck:
             return
     
     def remove(self, target=None):
-        assert len(self.cards) > 0, "Must have some cards in the deck..."
         try:
             if target == None:
                 self.cards.remove(self.selected)
@@ -111,6 +110,22 @@ class Deck:
     def __repr__(self):
         return "Deck(" + str(self.cards) + ")"
     
+    def add_from_txt(self, filename):
+        """
+        Scans text file for proper format; will add strings to instance deck. Returns True on success, False otherwise.
+        """
+        contents = None
+        try:
+            with open(filename, 'r') as f:
+                contents = re.findall(r'Q#(?:[\S\s](?!A#))*[\S\s])(A#(?:[\S\s](?!Q#))*[\S\s])',f.read())
+            if contents != None:
+                for x in contents:
+                    self += Card(x[0].rstrip('\n'),x[1].rstrip('\n'))
+            return True
+        except:
+            print("Error processing file")
+            return False
+        
 if __name__ == '__main__':
     print("-----Testing Card class:")
     print("---Testing Card.__init__() ....")
