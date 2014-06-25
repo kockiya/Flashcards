@@ -8,6 +8,7 @@
 import re
 
 from random import shuffle
+
 class Card:
     prefix = {"P#", "A#", "Q#"}
     def __init__(self, question, answer, priority=1):
@@ -52,20 +53,27 @@ class Card:
 #
 
 class Deck:
-    def __init__(self, cards=[]):
+    def __init__(self, cards=[], selected=None):
         self._cards = cards
         self.cards = cards
-        self.s_index = 0
-        self.selected = self.cards[self.s_index] if self._cards != [] else []
+        
+        self.s_index = selected if selected != None else 0
+        self.selected = self.cards[self.s_index] if self._cards != [] else None
+
+        self.h_index = 0
         self.history = dict()
         
     def __add__(self,right):
         if type(right) == Card:
             self._cards = self.cards
+            self.history[self.h_index] = self.__repr__()
             self.cards += [right]
+            self.h_index += 1
         elif type(right) == Deck:
             self._cards = self.cards
+            self.history[self.h_index] = self.__repr__()
             self.cards += right.cards
+            self.h_index += 1
         else:
             raise TypeError("Deck.__add__: Can only add Deck + Card or Deck + Deck")
     
@@ -77,7 +85,10 @@ class Deck:
         return deck_gen()
     
     def select(self, index):
-        pass
+        self.s_index = index
+        self.selected = self.cards[self.s_index]
+    
+        
     
     def next(self, mode=None):
         """
@@ -86,21 +97,23 @@ class Deck:
         p - priority; Cards with correct answers will appear with less priority.
         r - random; Randomized.
         """
-        assert len(self.cards) > 0, "Must have some cards in the deck..."
         if mode==None:
             if self.s_index < len(self.cards):
                 self.s_index += 1
             else:
                 self.s_index = 0
             self.selected = self.cards[self.s_index]
-            return
     
     def remove(self, target=None):
         try:
             if target == None:
+                self.history[self.h_index] = self.__repr__()
                 self.cards.remove(self.selected)
+                self.h_index += 1
             else:
+                self.history[self.h_index] = self.__repr__()
                 self.cards.remove(target)
+                self.h_index += 1
             if len(self.cards) > 0:
                 self.next()
             return 1
@@ -108,7 +121,7 @@ class Deck:
             return 0
         
     def __repr__(self):
-        return "Deck(" + str(self.cards) + ")"
+        return "Deck(" + str(self.cards) + ","  + str(self.s_index) + ")"
     
     def add_from_txt(self, filename):
         """
@@ -117,7 +130,7 @@ class Deck:
         contents = None
         try:
             with open(filename, 'r') as f:
-                contents = re.findall(r'Q#(?:[\S\s](?!A#))*[\S\s])(A#(?:[\S\s](?!Q#))*[\S\s])',f.read())
+                contents = re.findall(r'Q#(?:[\S\s](?!A#))*[\S\s])((?:A#|P#)(?:[\S\s](?!Q#))*[\S\s])',f.read())
             if contents != None:
                 for x in contents:
                     self += Card(x[0].rstrip('\n'),x[1].rstrip('\n'))
@@ -125,7 +138,28 @@ class Deck:
         except:
             print("Error processing file")
             return False
+    
+    def undo(self):
+        if self.h_index > 0:
+            self.h_index -= 1
+            d = eval(self.history[self.h_index])
+            self.cards = d.cards
+            self.s_index = d.s_index
+            self.selected = self.cards[self.s_index]
+            return True
+        else:
+            return False
         
+    def redo(self):
+        if self.h_index < len(self.history):
+            self.h_index += 1
+            d = eval(self.history[self.h_index])
+            self.s_index = d.s_index
+            self.selected = self.cards[self.s_index]
+            return True
+        else:
+            return False
+    
 if __name__ == '__main__':
     print("-----Testing Card class:")
     print("---Testing Card.__init__() ....")
