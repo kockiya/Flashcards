@@ -62,18 +62,25 @@ class Deck:
 
         self.h_index = 0
         self.history = dict()
-        
+    
+    def get_selected(self):
+        return self.selected
+    
     def __add__(self,right):
         if type(right) == Card:
-            self._cards = self.cards
             self.history[self.h_index] = self.__repr__()
             self.cards += [right]
             self.h_index += 1
+            if(self.cards != []):
+                self.selected = self.cards[self.s_index]
+            return self
         elif type(right) == Deck:
-            self._cards = self.cards
             self.history[self.h_index] = self.__repr__()
             self.cards += right.cards
             self.h_index += 1
+            if(self.cards != []):
+                self.selected = self.cards[self.s_index]
+            return self
         else:
             raise TypeError("Deck.__add__: Can only add Deck + Card or Deck + Deck")
     
@@ -98,7 +105,7 @@ class Deck:
         r - random; Randomized.
         """
         if mode==None:
-            if self.s_index < len(self.cards):
+            if self.s_index < len(self.cards)-1:
                 self.s_index += 1
             else:
                 self.s_index = 0
@@ -116,9 +123,9 @@ class Deck:
                 self.h_index += 1
             if len(self.cards) > 0:
                 self.next()
-            return 1
+            return True
         except ValueError:
-            return 0
+            return False
         
     def __repr__(self):
         return "Deck(" + str(self.cards) + ","  + str(self.s_index) + ")"
@@ -159,6 +166,7 @@ class Deck:
             return True
         else:
             return False
+        
     
 if __name__ == '__main__':
     print("-----Testing Card class:")

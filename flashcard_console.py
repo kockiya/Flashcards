@@ -4,10 +4,9 @@ Created on Jun 24, 2014
 @author: Xuxion
 '''
 
+from deck import *
 
-
-main_menu =  
-"""
+main_menu =  """
     -DECK SETTINGS-
         s) Start studying!
         a) Add a card
@@ -19,15 +18,13 @@ main_menu =
         g) Show greeting
 """
 
-mode_menu =  
-"""-MODE OPTIONS-
+mode_menu =  """-MODE OPTIONS-
         n) Go through cards normally
         o) Go through cards randomly
         x) Go through correct cards less frequently
 """
 
-greeting = 
-"""
+greeting = """
 This is a simple flash card program with the following features:
     -Start
         -Start going through cards
@@ -69,8 +66,66 @@ This is a simple flash card program with the following features:
 def main():
     mode = None
     filename = None
-    
+    main_select = None
+    d = Deck([])
     print(greeting)
     while(True):
-        print(main_menu)
-        
+        while True:
+            print(main_menu)
+            main_select = str(input("Enter a command:"))
+            if main_select in {'s','a','r','f','l','m','z','y','g'}:
+                break
+            print("Invalid command!\n")
+        if main_select == 's':
+            while True:
+                print("\n"+str(d.get_selected()))
+                command = str(input())
+                if command == '':
+                    d.selected.flip()
+                    print(d.selected)
+                    command = str(input())
+                    if command != '':
+                        break
+                else:
+                    break
+                d.selected.reset()
+                d.next()
+        elif main_select == 'a':
+            question = "Q#"+str(input("Enter the question for the new card:"))
+            answer = str(input("Enter the answer for the new card:"))
+            if answer[:2] == "P#":
+                answer = "P#"+answer
+            else:
+                answer = "A#"+answer
+            d += Card(question, answer)
+        elif main_select == 'r':
+            if d.remove():
+                print("The previously selected card was removed!")
+            else:
+                print("Error - Could not remove selected card! Is the deck empty?")
+        elif main_select == 'f':
+            filename = str(input("Enter the filename that contains the questions:"))
+            if not d.add_from_txt(filename):
+                print("Error - Could not processes the file! Make sure the file exists and follows the correct format")
+        elif main_select == 'm':
+            print(mode_menu)
+            new_mode = str(input("Enter the new mode"))
+            if new_mode in {'n','o','x'}:
+                mode = new_mode
+            else:
+                print("Error - Specified mode not recognized!")
+        elif main_select == 'z':
+            if d.undo():
+                print("The last change to the deck has been undone")
+            else:
+                print("Error - No more undo's available!")
+        elif main_select == 'y':
+            if d.redo():
+                print("The last undo has been undone!")
+            else:
+                print("Error - No more redo's available!")
+        elif main_select == 'g':
+            print(greeting)
+
+if __name__ == '__main__':
+    main()
