@@ -11,13 +11,11 @@ Anyways, the initial program that I made, however, required the question to be o
 
 The project here is a bit more organized and makes use of things I learned during from my last Python course (the previously mentioned program was made before I started taking Python classes as I learned the basics on my own). It also has a bit more features. My goal is to use the logic for a GUI version that will run on platforms besides Windows (probably Android). I'd also like to play around with Git and GitHub. I've had git installed for a while so I guess I'll try to use (intro software engineering course had an assignment that made us install it and practice the basics).
 
-To reiterate:
+To reiterate
 
 
-Goals
-=====
-
-- 1 - (Done) Come up with relatively "clean" (compared to my very first program) logic for flashcards.
-- 2 - (Done) Come up with a console interface that demonstrates the logic
-- 3 - Come up with a GUI (eyeing "Kivy" for it's crossplatform capabilities and the fact that it uses Python)
-- 4 - Come up with a GUI that can be used on Android
+###Goals
+1. - ~~Come up with relatively "clean" (compared to my very first program) logic for flashcards.~~
+2. - ~~Come up with a console interface that demonstrates the logic~~
+3. - Come up with a GUI (eyeing "Kivy" for it's crossplatform capabilities and the fact that it uses Python)
+4. - Come up with a GUI that can be used on Android
