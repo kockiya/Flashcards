@@ -13,7 +13,7 @@ The project here is a bit more organized and makes use of things I learned durin
 
 To reiterate:
 
-=====
+
 Goals
 =====
 
