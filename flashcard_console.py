@@ -8,14 +8,9 @@ from deck import *
 
 main_menu =  """
     -DECK SETTINGS-
-        s) Start studying!
-        a) Add a card
-        r) Remove selected card
-        f) Add questions from file
-        m) Change deck mode
-        z) Undo last deck change
-        y) Redo previous deck undo
-        g) Show greeting
+        (s) Start studying!    (a) Add a card    (e) Edit selected card    (r) Remove selected card    (l) List cards in deck
+        (m) Change deck mode   (g) Show greeting (y) Redo previous undo    (z) Undo last deck change   (f) Add questions from file
+        
 """
 
 mode_menu =  """-MODE OPTIONS-
@@ -31,8 +26,12 @@ This is a simple flash card program with the following features:
     -Add a card
         -Add a card to the deck by entering the card's question
         and the corresponding answer when prompted
+    -Edit selected card
+        -Manually enter a new question/answer to replace the selected card
     -Remove selected the card
         -Removes the selected card from the deck
+    -List cards in deck
+        -Prints out a list of cards currently in the deck.
     -Add questions from file
         -Generate cards from a text file. Questions are the characters that follow "Q#"
         and its corresponding answer are the characters that follow "A#". For a picture answer,
@@ -64,7 +63,7 @@ This is a simple flash card program with the following features:
 """
 def show_selected(d):
     if len(d) != 0:
-        print("----- Currently Selected Card -----\nQuestion: "+d.selected.get_question()[2:])
+        print("\n----- Currently Selected Card -----\nQuestion: "+d.selected.get_question()[2:])
         print("Answer:   "+d.selected.get_answer()[2:]+"\n-----                         -----")
     else:
         print("----- Currently Selected Card -----\n(Nothing Selected Because Deck is Empty)\n-----                         -----")
@@ -82,7 +81,7 @@ def main():
             show_selected(d)
             print(main_menu)
             main_select = str(input("Enter a command:"))
-            if main_select in {'s','a','r','f','l','m','z','y','g'}:
+            if main_select in {'s','a','r','f','l','m','z','y','g', 'e', 'l'}:
                 break
             print("Invalid command!\n")
         if main_select == 's':
@@ -94,7 +93,7 @@ def main():
                 command = str(input())
                 if command == '':
                     d.selected.flip()
-                    print(d.selected)
+                    print(d.get_selected())
                     command = str(input())
                     if command != '':
                         break
@@ -111,6 +110,24 @@ def main():
                 answer = "A#"+answer
             d += Card(question, answer)
             print("\nAdded new card with question '{q}' and answer '{a}'".format(q=question[2:], a=answer[2:]))
+        elif main_select == 'e':
+            show_selected(d)
+            if len(d) > 0:
+                saved_question = d.selected.get_question()
+                saved_answer = d.selected.get_answer()
+                question = "Q#"+str(input("Enter the new question (Leave blank to keep):"))
+                if question == 'Q#':
+                    question = saved_question
+                answer = str(input("Enter the answer for the new card (Leave blank to keep):"))
+                if answer == '':
+                    answer = saved_answer
+                elif answer[:2] == "P#":
+                    answer = "P#"+answer
+                else:
+                    answer = "A#"+answer
+                d.set_selected(question, answer)
+            else:
+                print("Error - Cannot edit cards when the deck is empty")
         elif main_select == 'r':
             print("The following card is currently selected and will be removed:")
             show_selected(d)
@@ -122,13 +139,19 @@ def main():
                     print("Error - Could not remove selected card! Is the deck empty?")
             else:
                 print("Because 'y' was not entered, the card was not removed")
+        elif main_select == 'l':
+            print("\nCurrent deck contents:")
+            if len(d) == 0:
+                print ("-- Empty --")
+            for x in d:
+                    print("---\nQuestion: '{q}'\nAnswer: '{a}'\n---".format(q=x[0], a=x[1]))
         elif main_select == 'f':
             filename = str(input("Enter the filename that contains the questions:"))
             file_result =  d.add_from_txt(filename)
             if file_result == False:
                 print("Error - Could not processes the file! Make sure the file exists and follows the correct format")
             else:
-                print("Added the following cards to the deck")
+                print("\nAdded the following cards to the deck:\n---")
                 for x in file_result:
                     print("Question: '{q}'\nAnswer: '{a}'\n---".format(q=x[0], a=x[1]))
             
