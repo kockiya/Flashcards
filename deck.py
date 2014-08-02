@@ -27,6 +27,12 @@ class Card:
     def get_question(self):
         return self._q
     
+    def set_answer(self, a):
+        self._a = a
+    
+    def set_question(self, q):
+        self._q = q
+    
     def get_priority(self):
         return self._priority
     
@@ -43,7 +49,7 @@ class Card:
         return self._face
     
     def __repr__(self):
-        return "Card(" + self._q + ", " + self._a + ")"
+        return "Card('''" + self._q + "''', '''" + self._a + "''')"
         
 ###     DECK CLASS IMPLEMENTATION     ###
 ###            Notes:                 ###
@@ -65,6 +71,9 @@ class Deck:
     
     def get_selected(self):
         return self.selected
+    
+    def __len__(self):
+        return len(self.cards)
     
     def __add__(self,right):
         if type(right) == Card:
@@ -95,7 +104,13 @@ class Deck:
         self.s_index = index
         self.selected = self.cards[self.s_index]
     
-        
+    def edit_selected(self, new_question, new_answer):
+        if len(self) > 0:
+            self.selected.set_question(new_question)
+            self.selected.set_answer(new_answer)
+            return True
+        else:
+            return False
     
     def next(self, mode=None):
         """
@@ -105,24 +120,36 @@ class Deck:
         r - random; Randomized.
         """
         if mode==None:
-            if self.s_index < len(self.cards)-1:
-                self.s_index += 1
+            if len(self) > 0:
+                if self.s_index < len(self.cards)-1:
+                    self.s_index += 1
+                else:
+                    self.s_index = 0
+                self.selected = self.cards[self.s_index]
             else:
-                self.s_index = 0
-            self.selected = self.cards[self.s_index]
+                return False
     
     def remove(self, target=None):
         try:
             if target == None:
-                self.history[self.h_index] = self.__repr__()
-                self.cards.remove(self.selected)
-                self.h_index += 1
+                if len(self) > 0:
+                    self.history[self.h_index] = self.__repr__()
+                    self.cards.pop(self.s_index)
+                    self.h_index += 1
+                    print("SELF __repr__()", self.__repr__())
+                else:
+                    return False
             else:
                 self.history[self.h_index] = self.__repr__()
-                self.cards.remove(target)
+                self.cards.pop(target)
                 self.h_index += 1
-            if len(self.cards) > 0:
-                self.next()
+            #if len(self.cards) > 0:
+            #    self.next()
+            if (self.s_index == len(self)-1 or self.s_index == len(self)) and len(self) > 0:
+                self.s_index -= 1
+            
+            if len(self) > 0:
+                self.selected = self.cards[self.s_index]
             return True
         except ValueError:
             return False
@@ -135,13 +162,15 @@ class Deck:
         Scans text file for proper format; will add strings to instance deck. Returns True on success, False otherwise.
         """
         contents = None
+        new_deck = Deck([])
         try:
             with open(filename, 'r') as f:
-                contents = re.findall(r'Q#(?:[\S\s](?!A#))*[\S\s])((?:A#|P#)(?:[\S\s](?!Q#))*[\S\s])',f.read())
+                contents = re.findall(r'(Q#(?:[\S\s](?!A#))*[\S\s])((?:A#|P#)(?:[\S\s](?!Q#))*[\S\s])',f.read())
             if contents != None:
                 for x in contents:
                     self += Card(x[0].rstrip('\n'),x[1].rstrip('\n'))
-            return True
+                    new_deck += Card(x[0].rstrip('\n'),x[1].rstrip('\n'))
+            return new_deck
         except:
             print("Error processing file")
             return False
@@ -161,6 +190,7 @@ class Deck:
         if self.h_index < len(self.history):
             self.h_index += 1
             d = eval(self.history[self.h_index])
+            self.cards = d.cards
             self.s_index = d.s_index
             self.selected = self.cards[self.s_index]
             return True

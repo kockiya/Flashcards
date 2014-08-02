@@ -62,7 +62,15 @@ This is a simple flash card program with the following features:
         -Show this message again
                 
 """
-
+def show_selected(d):
+    if len(d) != 0:
+        print("----- Currently Selected Card -----\nQuestion: "+d.selected.get_question()[2:])
+        print("Answer:   "+d.selected.get_answer()[2:]+"\n-----                         -----")
+    else:
+        print("----- Currently Selected Card -----\n(Nothing Selected Because Deck is Empty)\n-----                         -----")
+    
+    
+    
 def main():
     mode = None
     filename = None
@@ -71,6 +79,7 @@ def main():
     print(greeting)
     while(True):
         while True:
+            show_selected(d)
             print(main_menu)
             main_select = str(input("Enter a command:"))
             if main_select in {'s','a','r','f','l','m','z','y','g'}:
@@ -78,6 +87,9 @@ def main():
             print("Invalid command!\n")
         if main_select == 's':
             while True:
+                if len(d) == 0:
+                    print("There aren't any cards in the deck!")
+                    break
                 print("\n"+str(d.get_selected()))
                 command = str(input())
                 if command == '':
@@ -98,15 +110,28 @@ def main():
             else:
                 answer = "A#"+answer
             d += Card(question, answer)
+            print("\nAdded new card with question '{q}' and answer '{a}'".format(q=question[2:], a=answer[2:]))
         elif main_select == 'r':
-            if d.remove():
-                print("The previously selected card was removed!")
+            print("The following card is currently selected and will be removed:")
+            show_selected(d)
+            remove_confirm = str(input(("Enter 'y' to confirm removal:")))
+            if remove_confirm.lower() == 'y':
+                if d.remove():
+                    print("The previously selected card was removed!")
+                else:
+                    print("Error - Could not remove selected card! Is the deck empty?")
             else:
-                print("Error - Could not remove selected card! Is the deck empty?")
+                print("Because 'y' was not entered, the card was not removed")
         elif main_select == 'f':
             filename = str(input("Enter the filename that contains the questions:"))
-            if not d.add_from_txt(filename):
+            file_result =  d.add_from_txt(filename)
+            if file_result == False:
                 print("Error - Could not processes the file! Make sure the file exists and follows the correct format")
+            else:
+                print("Added the following cards to the deck")
+                for x in file_result:
+                    print("Question: '{q}'\nAnswer: '{a}'\n---".format(q=x[0], a=x[1]))
+            
         elif main_select == 'm':
             print(mode_menu)
             new_mode = str(input("Enter the new mode"))
