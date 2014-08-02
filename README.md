@@ -15,6 +15,7 @@ To reiterate
 
 
 ###Goals
+-----
 1. - ~~Come up with relatively "clean" (compared to my very first program) logic for flashcards.~~
 2. - ~~Come up with a console interface that demonstrates the logic~~
 3. - Come up with a GUI (eyeing "Kivy" for it's crossplatform capabilities and the fact that it uses Python)
