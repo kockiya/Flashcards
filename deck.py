@@ -32,6 +32,7 @@ class Card:
     
     def set_question(self, q):
         self._q = q
+        self._face = self._q
     
     def get_priority(self):
         return self._priority
@@ -70,8 +71,13 @@ class Deck:
         self.history = dict()
     
     def get_selected(self):
+        self.selected = self.cards[self.s_index]
         return self.selected
     
+    def set_selected(self, question, answer):
+        self.cards[self.s_index].set_question(question)
+        self.cards[self.s_index].set_answer(answer)
+        
     def __len__(self):
         return len(self.cards)
     
