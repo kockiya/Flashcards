@@ -154,7 +154,6 @@ def main():
                 print("\nAdded the following cards to the deck:\n---")
                 for x in file_result:
                     print("Question: '{q}'\nAnswer: '{a}'\n---".format(q=x[0], a=x[1]))
-            
         elif main_select == 'm':
             print(mode_menu)
             new_mode = str(input("Enter the new mode"))

@@ -142,15 +142,13 @@ class Deck:
                     self.history[self.h_index] = self.__repr__()
                     self.cards.pop(self.s_index)
                     self.h_index += 1
-                    print("SELF __repr__()", self.__repr__())
                 else:
                     return False
             else:
                 self.history[self.h_index] = self.__repr__()
                 self.cards.pop(target)
                 self.h_index += 1
-            #if len(self.cards) > 0:
-            #    self.next()
+                
             if (self.s_index == len(self)-1 or self.s_index == len(self)) and len(self) > 0:
                 self.s_index -= 1
             
@@ -172,6 +170,7 @@ class Deck:
         try:
             with open(filename, 'r') as f:
                 contents = re.findall(r'(Q#(?:[\S\s](?!A#))*[\S\s])((?:A#|P#)(?:[\S\s](?!Q#))*[\S\s])',f.read())
+                #contents = re.findall(r'((Q#(?:[\S\s](?!#Q|A#|P#))*[\S\s])(?:[\S\s]*)(?:(A#(?:[\S\s](?!#A|Q#))*[\S\s])|(P#(?:[\S\s](?!#P|Q#))*[\S\s]))',f.read())
             if contents != None:
                 for x in contents:
                     self += Card(x[0].rstrip('\n'),x[1].rstrip('\n'))
@@ -183,17 +182,19 @@ class Deck:
     
     def undo(self):
         if self.h_index > 0:
+            self.history[self.h_index] = self.__repr__()
             self.h_index -= 1
             d = eval(self.history[self.h_index])
             self.cards = d.cards
             self.s_index = d.s_index
-            self.selected = self.cards[self.s_index]
+            if len(self.cards) > 0:
+                self.selected = self.cards[self.s_index]
             return True
         else:
             return False
         
     def redo(self):
-        if self.h_index < len(self.history):
+        if self.h_index < len(self.history)-1:
             self.h_index += 1
             d = eval(self.history[self.h_index])
             self.cards = d.cards
