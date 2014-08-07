@@ -61,7 +61,11 @@ This is a simple flash card program with the following features:
         -Show this message again
                 
 """
+
 def show_selected(d):
+    ''' 
+    Print's out the selected card. 
+    '''
     if len(d) != 0:
         print("\n----- Currently Selected Card -----\nQuestion: "+d.selected.get_question()[2:])
         print("Answer:   "+d.selected.get_answer()[2:]+"\n-----                         -----")
@@ -76,7 +80,7 @@ def main():
     main_select = None
     d = Deck([])
     print(greeting)
-    while(True):
+    while True:
         while True:
             show_selected(d)
             print(main_menu)
@@ -164,8 +168,13 @@ def main():
             print(mode_menu)
             new_mode = str(input("Enter the new mode: "))
             if new_mode in {'n','o','x'}:
+                if new_mode == 'n':
+                    new_mode = None
                 mode = new_mode
-                print("- Enter 'y' for correct and 'n' for incorrect to change card priority- ")
+                d.clear_priorities()
+                d.set_mode(new_mode)
+                if new_mode == 'x':
+                    print("- Enter 'y' for correct and 'n' for incorrect to change card priority- ")
             else:
                 print("Error - Specified mode not recognized!")
         elif main_select == 'z':

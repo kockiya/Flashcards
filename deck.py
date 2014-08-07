@@ -77,27 +77,27 @@ class Deck:
         self.mode = None
     
     def get_selected(self):
-        if self.mode == None:
-            self.selected = self.cards[self.s_index]
-        elif self.mode == 'x':
-            self.selected = self.pool[self.p_index]
+        ''' 
+        Get's the selected card in the deck.
+        '''
+        self.selected = self.cards[self.s_index]
         return self.selected
-    
-    def set_selected(self, question, answer):
-        self.cards[self.s_index].set_question(question)
-        self.cards[self.s_index].set_answer(answer)
         
     def __len__(self):
         return len(self.cards)
     
     def __add__(self,right):
+        ''' 
+        Add a car dto the deck; can add Deck + Card or Deck + Deck.
+        '''
         if type(right) == Card:
             self.history[self.h_index] = self.__repr__()
             self.cards += [right]
             self.h_index += 1
             if(self.cards != []):
                 self.selected = self.cards[self.s_index]
-            self.build_pool()
+            if self.mode == 'x':
+                self.build_pool()
             return self
         elif type(right) == Deck:
             self.history[self.h_index] = self.__repr__()
@@ -105,7 +105,8 @@ class Deck:
             self.h_index += 1
             if(self.cards != []):
                 self.selected = self.cards[self.s_index]
-            self.build_pool()
+            if self.mode == 'x':
+                self.build_pool()
             return self
         else:
             raise TypeError("Deck.__add__: Can only add Deck + Card or Deck + Deck")
@@ -125,7 +126,8 @@ class Deck:
         if len(self) > 0:
             self.selected.set_question(new_question)
             self.selected.set_answer(new_answer)
-            self.build_pool()
+            if self.mode == 'x':
+                self.build_pool()
             return True
         else:
             return False
@@ -134,8 +136,8 @@ class Deck:
         """
         modes:
         None - By default, goes through the cards in order.
-        p - priority; Cards with correct answers will appear with less priority.
-        r - random; Randomized.
+        x - priority; Cards with correct answers will appear with less priority; wrong answers = higher priority.
+        o - random; Randomized with randomint's pseudo random.
         """
         self.mode = mode
         if mode==None:
@@ -150,25 +152,60 @@ class Deck:
         elif mode=='x':
             if len(self) > 0:
                 self.p_index = randint(0, len(self.pool)-1)
-                self.selected = self.pool[self.p_index]
+                self.s_index = self.pool[self.p_index]
+                self.selected = self.cards[self.s_index]
+            else:
+                return False
+        elif mode=='o':
+            if len(self) > 0:
+                self.s_index = randint(0, len(self.cards)-1)
+                self.selected = self.cards[self.s_index]
             else:
                 return False
                 
             
     def build_pool(self):
-        self.pool = self.cards
-        for x in self.cards:
-            for y in range(x.get_priority()-1):
-                self.pool += x
-        shuffle(self.pool)
+        ''' 
+        Builds a list of numbers. The numbers correspond to the possible indecies of self.cards.
+        The number of time an index appears in the pool depends on the card's priority.
         
+        Example - self.cards = [card1, Card2, Card3]
+                - self.pool = [0, 0, 0, 1, 2] would mean that Card1 had a priority of 3 while Card2 and Card3 had a priority of 1
+        
+        psuedo randomness would then be used to pick an 'index' from the pool to use with self.cards.
+        ... I mean, in theory... not sure how randint() will really behave.
+        '''
+        self.pool = []
+        for x in range(len(self.cards)):
+            for y in range(self.cards[x].get_priority()):
+                self.pool += [x]
+    
+    def clear_priorities(self):
+        self.pool = []
+        self.p_index = 0
+        self.s_index = 0
+        if len(self.cards) > 0:
+            self.selected = self.cards[self.s_index]
+        else:
+            self.selected = None
+        for x in self.cards:
+            x.set_priority(1)
+            
     def selected_was_wrong(self):
-        self.cards[self.p_index].set_priority(self.cards[self.p_index].get_priority()+1)
+        self.cards[self.s_index].set_priority(self.cards[self.s_index].get_priority()+1)
+        if self.mode == 'x':
+            self.build_pool()
+
     
     def selected_was_right(self):
-        if self.cards[self.p_index].get_priority() > 1:
-            self.cards[self.p_index].set_priority(self.cards[self.p_index].get_priority()-1)
-    
+        if self.cards[self.s_index].get_priority() > 1:
+            self.cards[self.s_index].set_priority(self.cards[self.s_index].get_priority()-1)
+            if self.mode == 'x':
+                self.build_pool()
+        
+    def set_mode(self, mode:str):
+        self.mode = mode
+
     def remove(self, target=None):
         try:
             if target == None:
@@ -188,7 +225,8 @@ class Deck:
             
             if len(self) > 0:
                 self.selected = self.cards[self.s_index]
-            self.build_pool()
+            if self.mode == 'x':
+                self.build_pool()
             return True
         except ValueError:
             return False
@@ -199,6 +237,9 @@ class Deck:
     def add_from_txt(self, filename):
         """
         Scans text file for proper format; will add strings to instance deck. Returns True on success, False otherwise.
+        For the regular expression, it should capture everything following 'Q#' up to 'A#' or 'P#' which will be considered
+        the question and everything following 'A#'/'P#' up to the EOF or 'Q#' which will be considered the answer to the previously
+        found question.
         """
         contents = None
         new_deck = Deck([])
@@ -216,6 +257,11 @@ class Deck:
             return False
     
     def undo(self):
+        ''' 
+        Works by restoring a string representation of the cards in the deck and the selected card.
+        If you notice, __add__(), remove(), edit() etc. will store the __repr__() in the history dictionary
+        before actually making changes to the deck
+        '''
         if self.h_index > 0:
             self.history[self.h_index] = self.__repr__()
             self.h_index -= 1
@@ -224,25 +270,32 @@ class Deck:
             self.s_index = d.s_index
             if len(self.cards) > 0:
                 self.selected = self.cards[self.s_index]
-            self.build_pool()
+            if self.mode == 'x':
+                self.build_pool()
             return True
         else:
             return False
         
     def redo(self):
+        '''
+        Works by undoing the undo's. If the undo process is interrupted by a deck change, there will
+        (probably) be nothing to redo due to the history overwrite..
+        '''
         if self.h_index < len(self.history)-1:
             self.h_index += 1
             d = eval(self.history[self.h_index])
             self.cards = d.cards
             self.s_index = d.s_index
             self.selected = self.cards[self.s_index]
-            self.build_pool()
+            if self.mode == 'x':
+                self.build_pool()
             return True
         else:
             return False
         
     
 if __name__ == '__main__':
+    #Quick tests
     print("-----Testing Card class:")
     print("---Testing Card.__init__() ....")
     c = Card("Q#What is the capital of California?", "A#Sacramento")
