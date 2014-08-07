@@ -94,13 +94,19 @@ def main():
                 if command == '':
                     d.selected.flip()
                     print(d.get_selected())
+                    if mode == 'x':
+                        print("(Enter 'y' if you got this right, 'n' if wrong, nothing to keep going)")
                     command = str(input())
-                    if command != '':
+                    if command == 'y':
+                        d.selected_was_right()
+                    elif command == 'n':
+                        d.selected_was_wrong()
+                    elif command not in {'y','n', ''}:
                         break
                 else:
                     break
                 d.selected.reset()
-                d.next()
+                d.next(mode)
         elif main_select == 'a':
             question = "Q#"+str(input("Enter the question for the new card:"))
             answer = str(input("Enter the answer for the new card:"))
@@ -156,9 +162,10 @@ def main():
                     print("Question: '{q}'\nAnswer: '{a}'\n---".format(q=x[0], a=x[1]))
         elif main_select == 'm':
             print(mode_menu)
-            new_mode = str(input("Enter the new mode"))
+            new_mode = str(input("Enter the new mode: "))
             if new_mode in {'n','o','x'}:
                 mode = new_mode
+                print("- Enter 'y' for correct and 'n' for incorrect to change card priority- ")
             else:
                 print("Error - Specified mode not recognized!")
         elif main_select == 'z':

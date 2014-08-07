@@ -8,6 +8,7 @@
 import re
 
 from random import shuffle
+from random import randint
 
 class Card:
     prefix = {"P#", "A#", "Q#"}
@@ -69,9 +70,17 @@ class Deck:
 
         self.h_index = 0
         self.history = dict()
+        
+        self.pool = []
+        self.p_index = 0
+        
+        self.mode = None
     
     def get_selected(self):
-        self.selected = self.cards[self.s_index]
+        if self.mode == None:
+            self.selected = self.cards[self.s_index]
+        elif self.mode == 'x':
+            self.selected = self.pool[self.p_index]
         return self.selected
     
     def set_selected(self, question, answer):
@@ -88,6 +97,7 @@ class Deck:
             self.h_index += 1
             if(self.cards != []):
                 self.selected = self.cards[self.s_index]
+            self.build_pool()
             return self
         elif type(right) == Deck:
             self.history[self.h_index] = self.__repr__()
@@ -95,6 +105,7 @@ class Deck:
             self.h_index += 1
             if(self.cards != []):
                 self.selected = self.cards[self.s_index]
+            self.build_pool()
             return self
         else:
             raise TypeError("Deck.__add__: Can only add Deck + Card or Deck + Deck")
@@ -114,6 +125,7 @@ class Deck:
         if len(self) > 0:
             self.selected.set_question(new_question)
             self.selected.set_answer(new_answer)
+            self.build_pool()
             return True
         else:
             return False
@@ -125,6 +137,7 @@ class Deck:
         p - priority; Cards with correct answers will appear with less priority.
         r - random; Randomized.
         """
+        self.mode = mode
         if mode==None:
             if len(self) > 0:
                 if self.s_index < len(self.cards)-1:
@@ -134,6 +147,27 @@ class Deck:
                 self.selected = self.cards[self.s_index]
             else:
                 return False
+        elif mode=='x':
+            if len(self) > 0:
+                self.p_index = randint(0, len(self.pool)-1)
+                self.selected = self.pool[self.p_index]
+            else:
+                return False
+                
+            
+    def build_pool(self):
+        self.pool = self.cards
+        for x in self.cards:
+            for y in range(x.get_priority()-1):
+                self.pool += x
+        shuffle(self.pool)
+        
+    def selected_was_wrong(self):
+        self.cards[self.p_index].set_priority(self.cards[self.p_index].get_priority()+1)
+    
+    def selected_was_right(self):
+        if self.cards[self.p_index].get_priority() > 1:
+            self.cards[self.p_index].set_priority(self.cards[self.p_index].get_priority()-1)
     
     def remove(self, target=None):
         try:
@@ -154,6 +188,7 @@ class Deck:
             
             if len(self) > 0:
                 self.selected = self.cards[self.s_index]
+            self.build_pool()
             return True
         except ValueError:
             return False
@@ -189,6 +224,7 @@ class Deck:
             self.s_index = d.s_index
             if len(self.cards) > 0:
                 self.selected = self.cards[self.s_index]
+            self.build_pool()
             return True
         else:
             return False
@@ -200,6 +236,7 @@ class Deck:
             self.cards = d.cards
             self.s_index = d.s_index
             self.selected = self.cards[self.s_index]
+            self.build_pool()
             return True
         else:
             return False
