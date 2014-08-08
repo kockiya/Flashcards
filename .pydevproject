@@ -4,5 +4,10 @@
 <path>/${PROJECT_DIR_NAME}</path>
 </pydev_pathproperty>
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python 3.0</pydev_property>
-<pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">Default</pydev_property>
+<pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">Python33 - Kivy</pydev_property>
+<pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
+<path>C:\Users\Xuxion\Desktop\Stuff\Programming Related\eclipse\kivy GUI</path>
+<path>C:\Users\Xuxion\Desktop\Stuff\Programming Related\eclipse\kivy GUI\Python33</path>
+<path>C:\Users\Xuxion\Desktop\Stuff\Programming Related\eclipse\kivy GUI\kivy</path>
+</pydev_pathproperty>
 </pydev_project>
