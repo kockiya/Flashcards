@@ -132,6 +132,9 @@ class Deck:
         else:
             return False
     
+    
+    
+        
     def next(self, mode=None):
         """
         modes:
@@ -163,7 +166,24 @@ class Deck:
             else:
                 return False
                 
-            
+                
+    def prev(self, mode=None):
+        """
+            Opposite of next. Still haven't decided if I want to allow this for
+            any other modes besides sequential.
+        """
+        if mode==None:
+            if len(self) > 0:
+                if self.s_index > 0:
+                    self.s_index -= 1
+                else:
+                    self.s_index = len(self.cards)-1
+                self.selected = self.cards[self.s_index]
+            else:
+                return False
+        else:
+            return False
+               
     def build_pool(self):
         ''' 
         Builds a list of numbers. The numbers correspond to the possible indecies of self.cards.
