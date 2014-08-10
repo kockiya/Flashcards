@@ -30,12 +30,12 @@ class DeckWidget(Widget):
             from full screen when the program is first launched, so this is also ran .5 seconds after __init__.
             
         """
-        
         #Window -> self.parent
         self.card_size = (self.parent.size[0]-40, float(self.parent.size[1]-40))
         self.card_pos = ((self.parent.size[0] - self.card_size[0])/4, (self.parent.size[1] - self.card_size[1])/4)#Centered in self.parent
         self.card_center = self.parent.center
         self.text_position = self.card_center
+        self.text_content = str(self.deck.selected) if len(self.deck) > 0 else "(Add a card to begin)"
         self.widgets['card_text'].center = self.card_center
         self.widgets['card_text_ref'].center = self.card_center
         self.touch_move_counter = 0
@@ -68,12 +68,15 @@ class DeckWidget(Widget):
         self.redraw_card_base()
         
         
-    def __init__(self):
+    def __init__(self, l=[]):
+        self.deck = Deck(l)
+        self.deck.add_from_txt("test.txt")
         Widget.__init__(self)
         self.card_size = (float(Window.size[0]-40), float(Window.size[1]-40))
         self.card_center = Window.center
         self.text_position = self.card_center
-        
+        self.text_content = str(self.deck.selected) if len(self.deck) > 0 else "(Add a card to begin)"
+
         #Creation of Scatter-Rectangle
         self.card_base = Scatter(size=self.card_size, center=self.card_center, do_rotation=False, do_translation_y=False, scale_min=.9, scale_max=1)
         self.shape = {'card_base_rect': Rectangle(size=self.card_base.size, center=self.card_base.center)}
@@ -81,8 +84,8 @@ class DeckWidget(Widget):
         self.card_base.canvas.before.add(self.shape['card_base_rect'])
     
         #Creation of Label Widget
-        self.widgets = {'card_text':Label(center=self.card_center, size=(20,20), font_size=15, text='Hello', color=[0,0,0,1]),
-                        'card_text_ref':Label(center=self.card_center, size=(20,20), font_size=15, text='Hello', color=[0,0,0,1])}
+        self.widgets = {'card_text':Label(center=self.card_center, size=(20,20), font_size=15, text=self.text_content, color=[0,0,0,1]),
+                        'card_text_ref':Label(center=self.card_center, size=(20,20), font_size=15, text=self.text_content, color=[0,0,0,1])}
         #Bindings
         def update_text(*args):
             self.widgets['card_text'].center = self.card_base.center
@@ -92,7 +95,16 @@ class DeckWidget(Widget):
         self.add_widget(self.card_base)
         self.add_widget(self.widgets['card_text'],len(self.children))
         
-        Clock.schedule_once(lambda *args: self.recalc_pos(),.5)
+        Clock.schedule_once(self.recalc_pos,.5)
+    
+    
+    
+    def change_card_text(self, new_text):
+        self.text_content = new_text
+        self.widgets['card_text'].text = self.text_content
+        
+    def update_selected_text(self):
+        self.change_card_text(str(self.deck.get_selected()))
         
     def redraw_card_base(self, *args):
         """
@@ -110,7 +122,7 @@ class DeckWidget(Widget):
         self.card_base.canvas.before.add(self.shape['card_base_rect'])
         
         self.widgets['card_text'] = Label(center=self.card_center, size=(20,20), font_size=self.widgets['card_text_ref'].font_size,
-                                           text='Hello', color=[0,0,0,1])
+                                           text=self.text_content, color=[0,0,0,1])
         self.add_widget(self.widgets['card_text'])
         self.widgets['card_text'].center = self.card_center
  
@@ -145,6 +157,8 @@ class DeckWidget(Widget):
             f_e.unbind(on_complete=final_zoom)
             card_zoom_b.start(self.card_base)
         def at_flip_end(*args):
+            self.deck.get_selected().flip()
+            self.update_selected_text()
             f_s.unbind(on_complete=at_flip_end)
             f_e.bind(on_complete=final_zoom)
             f_e.start(self.card_base)
@@ -171,14 +185,11 @@ class DeckWidget(Widget):
         
         def toggle_is_playing(*args):
             self.offscreen_animations['is_playing'] = False
-            #ret_to_center.stop(self.card_base)
-            #if right_mode:
-            #    z.unbind(on_complete=begin_entrance_y)
-            #else:
-                #y.unbind(on_complete=begin_entrance_y)
-            #ret_to_center.unbind(on_complete=toggle_is_playing)
         if right_mode:
             def begin_entrance_z(*args):
+                self.deck.get_selected().reset()
+                self.deck.prev(self.deck.mode)
+                self.update_selected_text()
                 self.card_base.center_x = -self.card_center[0]*.4
                 ret_to_center.bind(on_complete=toggle_is_playing)
                 ret_to_center.start(self.card_base)
@@ -186,6 +197,9 @@ class DeckWidget(Widget):
             z.start(self.card_base)
         else: #left mode
             def begin_entrance_y(*args):
+                self.deck.get_selected().reset()
+                self.deck.next(self.deck.mode)
+                self.update_selected_text()
                 self.card_base.center_x = self.card_center[0]*2.5
                 ret_to_center.bind(on_complete=toggle_is_playing)
                 ret_to_center.start(self.card_base)
@@ -213,7 +227,9 @@ class DeckWidget(Widget):
                 self.offscreen_animation(True)
         elif self.card_base.center[0] < (self.card_center[0]*.35):
             #Do offscreen/onscreen transition leftwards
-            if not self.offscreen_animations['is_playing']:
+            if self.deck.mode != None:
+                self.card_snapback_animation.start(self.card_base)
+            elif not self.offscreen_animations['is_playing']:
                 self.offscreen_animations['is_playing'] = True
                 self.offscreen_animation(False)
         else:
@@ -268,7 +284,7 @@ class DeckWidget(Widget):
         
         if not self.cardflip_animations['is_playing']:
             self.remove_widget(self.widgets['card_text'])
-            self.widgets['card_text'] = Label(center=self.card_base.center, size=(20,20), font_size=15, text='Hello', color=[0,0,0,1])
+            self.widgets['card_text'] = Label(center=self.card_base.center, size=(20,20), font_size=15, text=self.text_content, color=[0,0,0,1])
             self.add_widget(self.widgets['card_text'])
             self.widgets['card_text'].center = self.card_base.center
 
