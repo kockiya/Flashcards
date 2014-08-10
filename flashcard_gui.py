@@ -12,7 +12,7 @@ after the installation is extracted.
 Getting Kivy to work with eclipse, however, really exhausted my Googling abilities...
 '''
 
-
+from deck import *
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
@@ -23,10 +23,10 @@ from kivy.animation import Animation, AnimationTransition
 from kivy.graphics import *
 from kivy.clock import Clock
 
-class CardWidget(Widget):
+class DeckWidget(Widget):
     def recalc_pos(self, *args):
         """
-            Used whenever the Window size changes. The window size somtimes changes rapidly 
+            Used whenever the Window size changes. The window size sometimes changes rapidly 
             from full screen when the program is first launched, so this is also ran .5 seconds after __init__.
             
         """
@@ -38,18 +38,19 @@ class CardWidget(Widget):
         self.text_position = self.card_center
         self.widgets['card_text'].center = self.card_center
         self.widgets['card_text_ref'].center = self.card_center
-
+        self.touch_move_counter = 0
         self.card_base.size = self.card_size
         
         self.zoom_out_size = (self.card_size[0]*.9,self.card_size[1]*.9)
         self.cardflip_animations = {'zoom_in':Animation(size=self.card_size,duration=.5), 
                                     'zoom_out':Animation(size=self.zoom_out_size, duration=.3),
-                                    'text_zoom_in': Animation(font_size=15, duration=.01),
+                                    'text_zoom_in': Animation(font_size=15, duration=.5),
                                     'text_zoom_out':Animation(font_size=12, duration=.3),
                                     'zoom_in_out': (Animation(size=self.zoom_out_size, duration=.3)+Animation(size=self.card_size,duration=.5)),
                                     'flip_start': Animation(size=(0, self.zoom_out_size[1]),duration=.2),
                                     'flip_end': Animation(size=self.zoom_out_size,duration=.2),
-                                    'is_playing': False}
+                                    'is_playing': False,
+                                    'down_success': False}
         
         self.card_snapback_animation = Animation(center=self.card_center,duration=.1)
         
@@ -63,56 +64,44 @@ class CardWidget(Widget):
                                      'is_playing':False
                                      }
         
-        #def disable_trans(*args):
-        #    self.card_base.do_translation_x = False
-        #def enable_trans(*args):
-        #    self.card_base.do_translation_x = True
-        #self.cardflip_animations['zoom_out'].bind(on_start=disable_trans)
-        #self.cardflip_animations['zoom_in'].bind(on_complete=enable_trans)
-        
         
         self.redraw_card_base()
         
         
     def __init__(self):
         Widget.__init__(self)
-        self.init_bool_pos = False
         self.card_size = (float(Window.size[0]-40), float(Window.size[1]-40))
-        self.card_pos = ((Window.size[0] - self.card_size[0])/4, (Window.size[1] - self.card_size[1])/4)#Centered in Window
         self.card_center = Window.center
         self.text_position = self.card_center
-        #Create a Scatter Widget and Add a Rectangle to it's Canvas
+        
+        #Creation of Scatter-Rectangle
         self.card_base = Scatter(size=self.card_size, center=self.card_center, do_rotation=False, do_translation_y=False, scale_min=.9, scale_max=1)
         self.shape = {'card_base_rect': Rectangle(size=self.card_base.size, center=self.card_base.center)}
-        with self.card_base.canvas.before:
-            Color(255,255,255)
+        self.card_base.canvas.before.add(Color(255,255,255))
         self.card_base.canvas.before.add(self.shape['card_base_rect'])
-        
-        
-        #Create a Label Widget
+    
+        #Creation of Label Widget
         self.widgets = {'card_text':Label(center=self.card_center, size=(20,20), font_size=15, text='Hello', color=[0,0,0,1]),
                         'card_text_ref':Label(center=self.card_center, size=(20,20), font_size=15, text='Hello', color=[0,0,0,1])}
-        def update_text(*args):
-            #if self.card_base.size[0] == self.card_size[0] and self.card_base.size[1] == self.card_size[1]:
-            self.widgets['card_text'].center = self.card_base.center
-            
         #Bindings
+        def update_text(*args):
+            self.widgets['card_text'].center = self.card_base.center
         self.card_base.bind(size=self.redraw_card_base, center=update_text)
         Window.bind(on_resize=self.recalc_pos)
-        
-        #Add card_label as a child to the card_base, then card_base as a child to self
-        #self.card_base.add_widget(self.card_label)
         
         self.add_widget(self.card_base)
         self.add_widget(self.widgets['card_text'],len(self.children))
         
-        #Animations are Initialized in recalc_pos()
-            #recalc_pos() is scheduled because sometimes (randomly) the application will try to start in 
-            #Full screen but will quickly resize to the default (800x600) which will screw up all coordinates
-            #since they are relative until on_resize() is called
         Clock.schedule_once(lambda *args: self.recalc_pos(),.5)
         
     def redraw_card_base(self, *args):
+        """
+            Redraws the card. I had issues with canvas ordering and the text would never be drawn on top of the rectangle
+            as the rectangle seemed to be always put on top during an animation. So the label widget is removed and redrawn
+            after the rectangle is removed and redrawn.
+            
+            This is called every time an animation occurs that modifies the rectangle size.
+        """
         self.card_base.center = self.card_center
         self.remove_widget(self.widgets['card_text'])
         
@@ -128,6 +117,13 @@ class CardWidget(Widget):
 
         
     def flip_animation(self):
+        """
+            Plays a series of animations that will cause the rectangle to appear to flip. Local functions
+            are defined for the purpose of being bound when certain animations are complete. This way
+            I would be able to do things in the background after certain animations are complete
+            (i.e. when card is at the apex of the flip animation and is hardly visible, I want to
+            change the stuff on the card in the at_flip_end() function.)
+        """
         #self.cardflip_animations['zoom_in_out'].start(self.card_base)
         card_zoom_a = self.cardflip_animations['zoom_out']
         card_zoom_b = self.cardflip_animations['zoom_in']
@@ -165,6 +161,10 @@ class CardWidget(Widget):
         #(self.cardflip_animations['zoom_out']+self.cardflip_animations['zoom_in']).start(self.card_base)
     
     def offscreen_animation(self, right_mode):
+        """
+            Similar to flip animation. When at the end of the first offscreen transition, I'd want to
+            change the stuff on the card which could be done through the local  begin_entrance() functions
+        """
         ret_to_center = self.offscreen_animations['grow']&self.offscreen_animations['from_side_to_center']
         z = self.offscreen_animations['shrink']&self.offscreen_animations['rightward_leave']
         y = self.offscreen_animations['shrink']&self.offscreen_animations['leftward_leave']
@@ -195,51 +195,89 @@ class CardWidget(Widget):
     def on_touch_up(self, touch):
         '''
         Goals:
-            -If the card is released very close to the original position, it should play a flip animation.
-            -When the card is released further, it should transition back to it's original position.
+            -If the card is touch-released very close (<5px) to the original position, it should play a flip animation.
+            -When the card is released a bit further, it should transition back to the original position.
             -If the card is released at a point where half of it's face is offscreen, the card should
                 transition off screen and another card should transition on screen.
+        All of this should not be able to happen again if any animation is already playing.
         '''
         if self.card_base.center[0] < self.card_center[0]+5 and self.card_base.center[0] > self.card_center[0]-5:
-            #Do flip
-            if not self.cardflip_animations['is_playing']:
+            #Do flip animation
+            if not self.cardflip_animations['is_playing'] and self.cardflip_animations['down_success']:
                 self.cardflip_animations['is_playing'] = True
                 self.flip_animation()
         elif self.card_base.center[0] > (self.card_center[0]*1.65):
             #Do offscreen/onscreen transition rightwards
-            self.offscreen_animations['is_playing'] = True
-            self.offscreen_animation(True)
+            if not self.offscreen_animations['is_playing']:
+                self.offscreen_animations['is_playing'] = True
+                self.offscreen_animation(True)
         elif self.card_base.center[0] < (self.card_center[0]*.35):
             #Do offscreen/onscreen transition leftwards
-            self.offscreen_animations['is_playing'] = True
-            self.offscreen_animation(False)
+            if not self.offscreen_animations['is_playing']:
+                self.offscreen_animations['is_playing'] = True
+                self.offscreen_animation(False)
         else:
-            #Do transition-to-origin
+            #Do transition-to-origin animation
             self.card_snapback_animation.start(self.card_base)
         
-    
+        
+        #Swipe Emulation - See DeckWidget.on_touch_move()
+        if self.touch_move_counter < 7 and self.touch_move_counter > 1:
+            x_difference = self.touch_move_current[0] - self.touch_move_init[0]
+            y_difference = self.touch_move_current[1] - self.touch_move_init[1]
+            if x_difference > 5 and x_difference > y_difference:
+                if not self.offscreen_animations['is_playing'] and not self.cardflip_animations['is_playing']:
+                    self.offscreen_animations['is_playing'] = True
+                    self.offscreen_animation(True)
+            elif x_difference < -5 and x_difference < y_difference:
+                if not self.offscreen_animations['is_playing'] and not self.cardflip_animations['is_playing']:
+                    self.offscreen_animations['is_playing'] = True
+                    self.offscreen_animation(False)
+        self.touch_move_counter = 0
+        
+        
+    def on_touch_move(self, touch):
+        """
+            At the last minute, I noticed how my launcher on my android phone behaves when you swap
+            the screens. Even if your finger doesn't cover a significant distance. If you swipe quickly
+            with a clear direction yet very short distance, the screen will change.
+            
+            It's only when you move your finger slowly with a short distances will the screen bounce back to 
+            the original position. I wanted to try emulating this to an extent; swiping fast should play
+            the offscreen animations while swiping slow would cause the snapback animation effect.
+            
+            Also, the swipe must be bigger in the x-direction than it is in the y-direction.
+        """
+        if self.touch_move_counter == 0:
+            self.touch_move_init = touch.pos
+        else:
+            self.touch_move_current = touch.pos
+        self.touch_move_counter += 1
+        
     def on_touch_down(self, touch):
-        #print('Card Text Center',self.widgets['card_text'].center)
-        #print('Card_Center',self.card_center)
-        #print('Card_base.center',self.card_base.center)
-        #print()
+        """
+            Dictates what happens when the DeckWidget is clicked/touched but not released yet. 
+            Scatter.on_touch_down() handles sliding (card_base is a Scatter). Also, I only want
+            this to work if no animations are playing. 
+        """
         if self.offscreen_animations['is_playing'] == False and self.cardflip_animations['is_playing'] == False:
             self.card_base.on_touch_down(touch)
-        self.remove_widget(self.widgets['card_text'])
-        self.widgets['card_text'] = Label(center=self.card_base.center, size=(20,20), font_size=15, text='Hello', color=[0,0,0,1])
-        self.add_widget(self.widgets['card_text'])
-        self.widgets['card_text'].center = self.card_base.center
+            self.cardflip_animations['down_success'] = True
+        else:
+            self.cardflip_animations['down_success'] = False
         
-        #self.card_snapback_animation.stop(self.card_base)
-    
-    def on_resize(self):
-        print('omgomg')
+        if not self.cardflip_animations['is_playing']:
+            self.remove_widget(self.widgets['card_text'])
+            self.widgets['card_text'] = Label(center=self.card_base.center, size=(20,20), font_size=15, text='Hello', color=[0,0,0,1])
+            self.add_widget(self.widgets['card_text'])
+            self.widgets['card_text'].center = self.card_base.center
+
         
 
 
 class FlashcardApp(App):
     def build(self):
-        return CardWidget()
+        return DeckWidget()
 
 if __name__== '__main__':
    FlashcardApp().run()
