@@ -28,13 +28,16 @@ class CardWidget(Widget):
         """
             Used whenever the Window size changes. The window size somtimes changes rapidly 
             from full screen when the program is first launched, so this is also ran .5 seconds after __init__.
+            
         """
-
-        self.card_size = (Window.size[0]-40, float(Window.size[1]-40))
-        self.card_pos = ((Window.size[0] - self.card_size[0])/4, (Window.size[1] - self.card_size[1])/4)#Centered in Window
-        self.card_center = Window.center
+        
+        #Window -> self.parent
+        self.card_size = (self.parent.size[0]-40, float(self.parent.size[1]-40))
+        self.card_pos = ((self.parent.size[0] - self.card_size[0])/4, (self.parent.size[1] - self.card_size[1])/4)#Centered in self.parent
+        self.card_center = self.parent.center
         self.text_position = self.card_center
         self.widgets['card_text'].center = self.card_center
+        self.widgets['card_text_ref'].center = self.card_center
 
         self.card_base.size = self.card_size
         
@@ -43,7 +46,10 @@ class CardWidget(Widget):
                                     'zoom_out':Animation(size=self.zoom_out_size, duration=.3),
                                     'text_zoom_in': Animation(font_size=15, duration=.01),
                                     'text_zoom_out':Animation(font_size=12, duration=.3),
-                                    'zoom_in_out': (Animation(size=self.zoom_out_size, duration=.3)+Animation(size=self.card_size,duration=.5))}
+                                    'zoom_in_out': (Animation(size=self.zoom_out_size, duration=.3)+Animation(size=self.card_size,duration=.5)),
+                                    'flip_start': Animation(size=(0, self.zoom_out_size[1]),duration=.2),
+                                    'flip_end': Animation(size=self.zoom_out_size,duration=.2),
+                                    'is_playing': False}
         
         self.card_snapback_animation = Animation(center=self.card_center,duration=.1)
         
@@ -53,16 +59,16 @@ class CardWidget(Widget):
                                      'fade_out': Animation(opacity=.5,duration=.2),
                                      'fade_in': Animation(opacity=1, duration=.2),
                                      'shrink': Animation(size=(self.card_size[0]*.5, self.card_size[1]*.5), duration=.2),
-                                     'grow': Animation(size=self.card_size, duration = .45)
+                                     'grow': Animation(size=self.card_size, duration = .45),
+                                     'is_playing':False
                                      }
         
-        def disable_trans(*args):
-            self.card_base.do_translation_x = False
-        def enable_trans(*args):
-            self.card_base.do_translation_x = True
-        self.cardflip_animations['zoom_out'].bind(on_start=disable_trans)
-        self.cardflip_animations['zoom_in'].bind(on_complete=enable_trans)
-        
+        #def disable_trans(*args):
+        #    self.card_base.do_translation_x = False
+        #def enable_trans(*args):
+        #    self.card_base.do_translation_x = True
+        #self.cardflip_animations['zoom_out'].bind(on_start=disable_trans)
+        #self.cardflip_animations['zoom_in'].bind(on_complete=enable_trans)
         
         
         self.redraw_card_base()
@@ -84,7 +90,8 @@ class CardWidget(Widget):
         
         
         #Create a Label Widget
-        self.widgets = {'card_text':Label(center=self.card_center, size=(20,20), font_size=15, text='Hello', color=[0,0,0,1])}
+        self.widgets = {'card_text':Label(center=self.card_center, size=(20,20), font_size=15, text='Hello', color=[0,0,0,1]),
+                        'card_text_ref':Label(center=self.card_center, size=(20,20), font_size=15, text='Hello', color=[0,0,0,1])}
         def update_text(*args):
             #if self.card_base.size[0] == self.card_size[0] and self.card_base.size[1] == self.card_size[1]:
             self.widgets['card_text'].center = self.card_base.center
@@ -113,35 +120,78 @@ class CardWidget(Widget):
         self.shape['card_base_rect'] = Rectangle(size=self.card_base.size, center=self.card_base.center)
         self.card_base.canvas.before.add(self.shape['card_base_rect'])
         
-        self.widgets['card_text'] = Label(center=self.card_center, size=(20,20), font_size=15, text='Hello', color=[0,0,0,1])
+        self.widgets['card_text'] = Label(center=self.card_center, size=(20,20), font_size=self.widgets['card_text_ref'].font_size,
+                                           text='Hello', color=[0,0,0,1])
         self.add_widget(self.widgets['card_text'])
         self.widgets['card_text'].center = self.card_center
  
 
         
     def flip_animation(self):
-        self.cardflip_animations['zoom_in_out'].start(self.card_base)
+        #self.cardflip_animations['zoom_in_out'].start(self.card_base)
+        card_zoom_a = self.cardflip_animations['zoom_out']
+        card_zoom_b = self.cardflip_animations['zoom_in']
+        text_zoom = self.cardflip_animations['text_zoom_out']+self.cardflip_animations['text_zoom_in']
+        text_zoom.start(self.widgets['card_text_ref'])
+        
+        f_e = p = self.cardflip_animations['flip_end']
+        f_s = self.cardflip_animations['flip_start']
+        def toggle_is_playing(*args):
+            self.cardflip_animations['is_playing'] = not self.cardflip_animations['is_playing']
+            card_zoom_a.stop(self.card_base)
+            card_zoom_b.stop(self.card_base)
+            text_zoom.stop(self.card_base)
+            f_e.stop(self.card_base)
+            f_s.stop(self.card_base)
+            card_zoom_b.unbind(on_complete=toggle_is_playing)
+            card_zoom_a.unbind(on_complete=at_zoom_end)
+        def final_zoom(*args):
+            f_e.unbind(on_complete=final_zoom)
+            card_zoom_b.start(self.card_base)
+        def at_flip_end(*args):
+            f_s.unbind(on_complete=at_flip_end)
+            f_e.bind(on_complete=final_zoom)
+            f_e.start(self.card_base)
+        def at_zoom_end(*args):
+            f_s.bind(on_complete=at_flip_end)
+            f_s.start(self.card_base)
+        
+        card_zoom_b.bind(on_complete=toggle_is_playing)
+        card_zoom_a.bind(on_complete=at_zoom_end)
+        card_zoom_a.start(self.card_base)
+        
+        
+        
         #(self.cardflip_animations['zoom_out']+self.cardflip_animations['zoom_in']).start(self.card_base)
     
     def offscreen_animation(self, right_mode):
+        ret_to_center = self.offscreen_animations['grow']&self.offscreen_animations['from_side_to_center']
+        z = self.offscreen_animations['shrink']&self.offscreen_animations['rightward_leave']
+        y = self.offscreen_animations['shrink']&self.offscreen_animations['leftward_leave']
+        
+        def toggle_is_playing(*args):
+            self.offscreen_animations['is_playing'] = False
+            #ret_to_center.stop(self.card_base)
+            #if right_mode:
+            #    z.unbind(on_complete=begin_entrance_y)
+            #else:
+                #y.unbind(on_complete=begin_entrance_y)
+            #ret_to_center.unbind(on_complete=toggle_is_playing)
         if right_mode:
-            def begin_entrance(*args):
+            def begin_entrance_z(*args):
                 self.card_base.center_x = -self.card_center[0]*.4
-                p = (self.offscreen_animations['grow']&self.offscreen_animations['from_side_to_center'])
-                #p.bind(on_complete=lambda *args:z.stop(self.card_base))
-                p.start(self.card_base)
-            z = (self.offscreen_animations['shrink']&self.offscreen_animations['rightward_leave'])
-            z.bind(on_complete=begin_entrance)
+                ret_to_center.bind(on_complete=toggle_is_playing)
+                ret_to_center.start(self.card_base)
+            z.bind(on_complete=begin_entrance_z)
             z.start(self.card_base)
         else: #left mode
-            def begin_entrance(*args):
+            def begin_entrance_y(*args):
                 self.card_base.center_x = self.card_center[0]*2.5
-                p = (self.offscreen_animations['grow']&self.offscreen_animations['from_side_to_center'])
-                #p.bind(on_complete=lambda *args:z.stop(self.card_base))
-                p.start(self.card_base)
-            y = (self.offscreen_animations['shrink']&self.offscreen_animations['leftward_leave'])
-            y.bind(on_complete=begin_entrance)
+                ret_to_center.bind(on_complete=toggle_is_playing)
+                ret_to_center.start(self.card_base)
+            y.bind(on_complete=begin_entrance_y)
             y.start(self.card_base)
+            
     def on_touch_up(self, touch):
         '''
         Goals:
@@ -152,12 +202,16 @@ class CardWidget(Widget):
         '''
         if self.card_base.center[0] < self.card_center[0]+5 and self.card_base.center[0] > self.card_center[0]-5:
             #Do flip
-            self.flip_animation()
+            if not self.cardflip_animations['is_playing']:
+                self.cardflip_animations['is_playing'] = True
+                self.flip_animation()
         elif self.card_base.center[0] > (self.card_center[0]*1.65):
             #Do offscreen/onscreen transition rightwards
+            self.offscreen_animations['is_playing'] = True
             self.offscreen_animation(True)
         elif self.card_base.center[0] < (self.card_center[0]*.35):
             #Do offscreen/onscreen transition leftwards
+            self.offscreen_animations['is_playing'] = True
             self.offscreen_animation(False)
         else:
             #Do transition-to-origin
@@ -169,13 +223,14 @@ class CardWidget(Widget):
         #print('Card_Center',self.card_center)
         #print('Card_base.center',self.card_base.center)
         #print()
-        self.card_base.on_touch_down(touch)
+        if self.offscreen_animations['is_playing'] == False and self.cardflip_animations['is_playing'] == False:
+            self.card_base.on_touch_down(touch)
         self.remove_widget(self.widgets['card_text'])
         self.widgets['card_text'] = Label(center=self.card_base.center, size=(20,20), font_size=15, text='Hello', color=[0,0,0,1])
         self.add_widget(self.widgets['card_text'])
         self.widgets['card_text'].center = self.card_base.center
         
-        self.card_snapback_animation.stop(self.card_base)
+        #self.card_snapback_animation.stop(self.card_base)
     
     def on_resize(self):
         print('omgomg')
