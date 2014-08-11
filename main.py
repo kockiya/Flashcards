@@ -97,15 +97,13 @@ class DeckWidget(Widget):
         #Bindings
         def update_text(*args):
             self.widgets['card_text'].center = self.card_base.center
-        self.card_base.bind(size=self.redraw_card_base, center=update_text)
-        Window.bind(on_resize=self.recalc_pos)
+        self.card_base.bind(width=self.redraw_card_base, center_x=update_text)
+        Window.bind(on_resize=self.recalc_pos, on_rotate=self.recalc_pos)
         
         self.add_widget(self.card_base)
         self.add_widget(self.widgets['card_text'],len(self.children))
         
         Clock.schedule_once(self.recalc_pos,.5)
-    
-    
     
     def change_card_text(self, new_text):
         self.text_content = new_text
