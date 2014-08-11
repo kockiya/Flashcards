@@ -223,7 +223,7 @@ class Deck:
             if self.mode == 'x':
                 self.build_pool()
         
-    def set_mode(self, mode:str):
+    def set_mode(self, mode):
         self.mode = mode
 
     def remove(self, target=None):
