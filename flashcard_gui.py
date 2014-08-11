@@ -69,8 +69,15 @@ class DeckWidget(Widget):
         
         
     def __init__(self, l=[]):
-        self.deck = Deck(l)
-        self.deck.add_from_txt("test.txt")
+        #COMMENTED OUT aND MANUALLY ADDED FOR ANDROID TESTING PURPOSES
+        #self.deck = Deck(l)
+        self.deck = Deck([Card('''Q#This is the first question''', '''A#This is the first answer'''), 
+                          Card('''Q#This is the second question''', '''A#This is the second answer'''), 
+                          Card('''Q#This is the third question''', '''A#This is the third answer'''), 
+                          Card('''Q#This is the fourth question''', '''A#This is the fourth answer'''), 
+                          Card('''Q#This is the fifth question''', '''A#This is the fifth answer''')],0)
+        
+        print(self.deck)
         Widget.__init__(self)
         self.card_size = (float(Window.size[0]-40), float(Window.size[1]-40))
         self.card_center = Window.center
@@ -293,6 +300,7 @@ class DeckWidget(Widget):
 
 class FlashcardApp(App):
     def build(self):
+        
         return DeckWidget()
 
 if __name__== '__main__':
