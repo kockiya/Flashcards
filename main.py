@@ -13,6 +13,7 @@ Getting Kivy to work with eclipse, however, really exhausted my Googling abiliti
 '''
 
 from deck import *
+from kivy.metrics import *
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
@@ -44,8 +45,8 @@ class DeckWidget(Widget):
         self.zoom_out_size = (self.card_size[0]*.9,self.card_size[1]*.9)
         self.cardflip_animations = {'zoom_in':Animation(size=self.card_size,duration=.5), 
                                     'zoom_out':Animation(size=self.zoom_out_size, duration=.3),
-                                    'text_zoom_in': Animation(font_size=15, duration=.5),
-                                    'text_zoom_out':Animation(font_size=12, duration=.3),
+                                    'text_zoom_in': Animation(font_size=sp(15), duration=.5),
+                                    'text_zoom_out':Animation(font_size=sp(12), duration=.3),
                                     'zoom_in_out': (Animation(size=self.zoom_out_size, duration=.3)+Animation(size=self.card_size,duration=.5)),
                                     'flip_start': Animation(size=(0, self.zoom_out_size[1]),duration=.2),
                                     'flip_end': Animation(size=self.zoom_out_size,duration=.2),
@@ -77,7 +78,7 @@ class DeckWidget(Widget):
                           Card('''Q#This is the fourth question''', '''A#This is the fourth answer'''), 
                           Card('''Q#This is the fifth question''', '''A#This is the fifth answer''')],0)
         
-        print(self.deck)
+        #print(self.deck)
         Widget.__init__(self)
         self.card_size = (float(Window.size[0]-40), float(Window.size[1]-40))
         self.card_center = Window.center
@@ -91,8 +92,8 @@ class DeckWidget(Widget):
         self.card_base.canvas.before.add(self.shape['card_base_rect'])
     
         #Creation of Label Widget
-        self.widgets = {'card_text':Label(center=self.card_center, size=(20,20), font_size=15, text=self.text_content, color=[0,0,0,1]),
-                        'card_text_ref':Label(center=self.card_center, size=(20,20), font_size=15, text=self.text_content, color=[0,0,0,1])}
+        self.widgets = {'card_text':Label(center=self.card_center, size=(20,20), font_size=sp(15), text=self.text_content, color=[0,0,0,1]),
+                        'card_text_ref':Label(center=self.card_center, size=(20,20), font_size=sp(15), text=self.text_content, color=[0,0,0,1])}
         #Bindings
         def update_text(*args):
             self.widgets['card_text'].center = self.card_base.center
@@ -291,7 +292,7 @@ class DeckWidget(Widget):
         
         if not self.cardflip_animations['is_playing']:
             self.remove_widget(self.widgets['card_text'])
-            self.widgets['card_text'] = Label(center=self.card_base.center, size=(20,20), font_size=15, text=self.text_content, color=[0,0,0,1])
+            self.widgets['card_text'] = Label(center=self.card_base.center, size=(20,20), font_size=sp(15), text=self.text_content, color=[0,0,0,1])
             self.add_widget(self.widgets['card_text'])
             self.widgets['card_text'].center = self.card_base.center
 
