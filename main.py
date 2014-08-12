@@ -97,7 +97,7 @@ class DeckWidget(Widget):
         #Bindings
         def update_text(*args):
             self.widgets['card_text'].center = self.card_base.center
-        self.card_base.bind(width=self.redraw_card_base, center_x=update_text)
+        self.card_base.bind(width=self.redraw_card_base) #center_x=update_text)
         Window.bind(on_resize=self.recalc_pos, on_rotate=self.recalc_pos)
         
         self.add_widget(self.card_base)
@@ -145,16 +145,16 @@ class DeckWidget(Widget):
         #self.cardflip_animations['zoom_in_out'].start(self.card_base)
         card_zoom_a = self.cardflip_animations['zoom_out']
         card_zoom_b = self.cardflip_animations['zoom_in']
-        text_zoom = self.cardflip_animations['text_zoom_out']+self.cardflip_animations['text_zoom_in']
-        text_zoom.start(self.widgets['card_text_ref'])
+        #text_zoom = self.cardflip_animations['text_zoom_out']+self.cardflip_animations['text_zoom_in']
+        #text_zoom.start(self.widgets['card_text_ref'])
         
         f_e = p = self.cardflip_animations['flip_end']
         f_s = self.cardflip_animations['flip_start']
         def toggle_is_playing(*args):
             self.cardflip_animations['is_playing'] = not self.cardflip_animations['is_playing']
-            card_zoom_a.stop(self.card_base)
-            card_zoom_b.stop(self.card_base)
-            text_zoom.stop(self.card_base)
+            #card_zoom_a.stop(self.card_base)
+            #card_zoom_b.stop(self.card_base)
+            #text_zoom.stop(self.card_base)
             f_e.stop(self.card_base)
             f_s.stop(self.card_base)
             card_zoom_b.unbind(on_complete=toggle_is_playing)
@@ -288,11 +288,11 @@ class DeckWidget(Widget):
         else:
             self.cardflip_animations['down_success'] = False
         
-        if not self.cardflip_animations['is_playing']:
-            self.remove_widget(self.widgets['card_text'])
-            self.widgets['card_text'] = Label(center=self.card_base.center, size=(20,20), font_size=sp(15), text=self.text_content, color=[0,0,0,1])
-            self.add_widget(self.widgets['card_text'])
-            self.widgets['card_text'].center = self.card_base.center
+        #if not self.cardflip_animations['is_playing']:
+        #    self.remove_widget(self.widgets['card_text'])
+        #    self.widgets['card_text'] = Label(center=self.card_base.center, size=(20,20), font_size=sp(15), text=self.text_content, color=[0,0,0,1])
+        #    self.add_widget(self.widgets['card_text'])
+        #    self.widgets['card_text'].center = self.card_base.center
 
         
 
