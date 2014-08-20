@@ -48,7 +48,7 @@ class Card:
         self._face = self._q
         
     def __str__(self):
-        return self._face
+        return self._face[2:]
     
     def __repr__(self):
         return "Card('''" + self._q + "''', '''" + self._a + "''')"
@@ -271,6 +271,8 @@ class Deck:
                 for x in contents:
                     self += Card(x[0].rstrip('\n'),x[1].rstrip('\n'))
                     new_deck += Card(x[0].rstrip('\n'),x[1].rstrip('\n'))
+            if(len(new_deck) == 0):
+                return False
             return new_deck
         except:
             print("Error processing file")

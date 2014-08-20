@@ -22,7 +22,11 @@ from kivy.core.window import Window
 from kivy.uix.scatter import Scatter
 from kivy.animation import Animation, AnimationTransition
 from kivy.graphics import *
+from kivy.uix.filechooser import *
 from kivy.clock import Clock
+from kivy.uix.screenmanager import ScreenManager, Screen, TransitionBase
+from kivy.properties import ObjectProperty
+import os
 
 class DeckWidget(Widget):
     def recalc_pos(self, *args):
@@ -32,16 +36,20 @@ class DeckWidget(Widget):
             
         """
         #Window -> self.parent
+        self.parent.size = Window.size
         self.card_size = (self.parent.size[0]-40, float(self.parent.size[1]-40))
         self.card_pos = ((self.parent.size[0] - self.card_size[0])/4, (self.parent.size[1] - self.card_size[1])/4)#Centered in self.parent
         self.card_center = self.parent.center
         self.text_position = self.card_center
         self.text_content = str(self.deck.selected) if len(self.deck) > 0 else "(Add a card to begin)"
         self.widgets['card_text'].center = self.card_center
+        self.widgets['card_text'].text_size = (20, 20)
+        self.widgets['card_text'].size = (20, 20)
         self.widgets['card_text_ref'].center = self.card_center
+        self.widgets['card_text_ref'].text_size = (20, 20)
+        self.widgets['card_text_ref'].size = (20, 20)
         self.touch_move_counter = 0
         self.card_base.size = self.card_size
-        
         self.zoom_out_size = (self.card_size[0]*.9,self.card_size[1]*.9)
         self.cardflip_animations = {'zoom_in':Animation(size=self.card_size,duration=.5), 
                                     'zoom_out':Animation(size=self.zoom_out_size, duration=.3),
@@ -69,14 +77,21 @@ class DeckWidget(Widget):
         self.redraw_card_base()
         
         
-    def __init__(self, l=[]):
+    def __init__(self, f=None):
         #COMMENTED OUT aND MANUALLY ADDED FOR ANDROID TESTING PURPOSES
-        #self.deck = Deck(l)
-        self.deck = Deck([Card('''Q#This is the first question''', '''A#This is the first answer'''), 
-                          Card('''Q#This is the second question''', '''A#This is the second answer'''), 
-                          Card('''Q#This is the third question''', '''A#This is the third answer'''), 
-                          Card('''Q#This is the fourth question''', '''A#This is the fourth answer'''), 
-                          Card('''Q#This is the fifth question''', '''A#This is the fifth answer''')],0)
+        
+        if(type(f) == type('a')):
+            self.deck = Deck([])
+            if(self.deck.add_from_txt(f) == False):
+                print("LOOOOL: ", f)
+                self.deck += Card("Q#Failed to Open File", "A#Try Again...")
+        else:
+            self.deck = Deck([Card('''Q#This is the first question''', '''A#This is the first answer'''), 
+                              Card('''Q#This is the second question''', '''A#This is the second answer'''), 
+                              Card('''Q#This is the third question''', '''A#This is the third answer'''), 
+                              Card('''Q#This is the fourth question''', '''A#This is the fourth answer'''), 
+                              Card('''Q#This is the fifth question''', '''A#This is the fifth answer''')],0)
+        
         
         #print(self.deck)
         Widget.__init__(self)
@@ -92,8 +107,8 @@ class DeckWidget(Widget):
         self.card_base.canvas.before.add(self.shape['card_base_rect'])
     
         #Creation of Label Widget
-        self.widgets = {'card_text':Label(center=self.card_center, size=(20,20), font_size=sp(15), text=self.text_content, color=[0,0,0,1]),
-                        'card_text_ref':Label(center=self.card_center, size=(20,20), font_size=sp(15), text=self.text_content, color=[0,0,0,1])}
+        self.widgets = {'card_text':Label(center=self.card_center, halign='center', valign='middle', text_size=self.card_size, font_size=sp(15), text=self.text_content, color=[0,0,0,1]),
+                        'card_text_ref':Label(center=self.card_center,halign='center', valign='middle',text_size=self.card_size, font_size=sp(15), text=self.text_content, color=[0,0,0,1])}
         #Bindings
         def update_text(*args):
             self.widgets['card_text'].center = self.card_base.center
@@ -294,13 +309,47 @@ class DeckWidget(Widget):
             self.add_widget(self.widgets['card_text'])
             self.widgets['card_text'].center = self.card_base.center
 
-        
 
+class _screen(ScreenManager):
+    def __init__(self):
+        ScreenManager.__init__(self)
+        self.add_widget(FileScreen())
+        self.d = DeckScreen()
+        self.add_widget(self.d)
+        self.on_file = True
+        self.filepath = None
+        
+    #def on_touch_up(self, touch):
+    #    self.d.on_touch_up(touch)
+
+            
+
+class FileScreen(Screen):
+    def __init__(self):
+        Screen.__init__(self)
+        self.fc = FileChooserListView(path=os.getcwd())
+        self.fc.bind(on_submit=self.print_selected)
+        self.add_widget(self.fc)
+        self.name = 'file'
+
+    def print_selected(self, *args):
+        self.parent.filepath = self.fc.selection[0]
+        self.parent.current = 'deck'
+
+class DeckScreen(Screen):
+    def __init__(self):
+        Screen.__init__(self)
+        self.bl = BoxLayout(size=Window.size)
+        self.add_widget(self.bl)
+        self.name = 'deck'
+    
+    def on_pre_enter(self):
+        self.dw = DeckWidget(self.parent.filepath)
+        self.bl.add_widget(self.dw)
 
 class FlashcardApp(App):
     def build(self):
-        
-        return DeckWidget()
+        return _screen()
 
 if __name__== '__main__':
    FlashcardApp().run()
