@@ -18,5 +18,7 @@ To reiterate:
 -----
 1. - ~~Come up with relatively "clean" (compared to my very first program) logic for flashcards.~~
 2. - ~~Come up with a console interface that demonstrates the logic~~
-3. - Come up with a GUI (eyeing "Kivy" for it's crossplatform capabilities and the fact that it uses Python)
-4. - Come up with a GUI that can be used on Android
+3. - ~~Come up with a GUI (eyeing "Kivy" for it's crossplatform capabilities and the fact that it uses Python)~~
+4. - ~~Come up with a GUI that can be used on Android~~
+
+Although it's pretty clumsy, it's usable. I honestly don't think it's bad for my first app with a useful purpose. I might add in the two missing features later since I'd like to move on to another project ... probably in Java (actually implement the mode changing that's already done in the logic and to somehow show the user a list of cards currently in the deck). As I was doing this, there were multiple times where I thought I could have done something better (like maybe I should have numbered the cards or maybe something I made from near-scratch was already implemented). Getting it to work was the overall goal though, so I think this was a good stopping point.
