@@ -1,0 +1,85 @@
+[
+    {
+        "type": "title",
+        "title": "Deck Settings"
+    },
+    {
+        "type": "screen",
+        "title": "Start Studying!",
+        "screen": "deck",
+        "desc": "Start going through cards",
+        "section": "deck",
+        "key": "start_studying"
+    },
+    {
+        "type": "options",
+        "title": "Deck Mode",
+        "desc": "Choose to go through cards normally, randomly, or with a priority",
+        "section": "deck",
+        "options": ["Normal","Random","Priority"],
+        "key": "change_deck_mode"
+    },
+    {
+        "type": "screen",
+        "screen": "file",
+        "title": "Add deck from file",
+        "desc": "Add cards to the deck based on specially formatted .txt file",
+        "section": "deck",
+        "key": "show_list",
+        "true": "auto"
+    },
+    {
+        "type": "screen",
+        "screen": "file",
+        "title": "Show list of cards in deck",
+        "desc": "Shows a list of cards currently in the deck",
+        "section": "deck",
+        "key": "show_list",
+        "true": "auto"
+    },
+    {
+        "type": "action",
+        "title": "Undo last deck change",
+        "desc": "Undo last add/remove",
+        "section": "deck",
+        "key": "undo",
+        "true": "auto",
+        "action": "undo"
+    },
+    {
+        "type": "action",
+        "title": "Redo previous deck undo",
+        "desc": "If possible, redos previous undo",
+        "section": "deck",
+        "key": "redo",
+        "action":"redo"
+    },
+    {
+        "type": "title",
+        "title": "Card Settings"
+    },
+    {
+        "type": "screen",
+        "title": "Add a card",
+        "desc": "Add a card to the deck by entering the card's question and the corresponding answer",
+        "section": "card",
+        "screen": "add",
+        "key": "add"
+    },
+    {
+        "type": "screen",
+        "title": "Edit selected card",
+        "desc": "Manually enter a new question/answer to replace the selected card",
+        "section": "card",
+        "key": "edit",
+        "screen":"edit"
+    },
+    {
+        "type": "action",
+        "title": "Remove selected the card",
+        "desc": "Removes the selected card from the deck",
+        "section": "card",
+        "key": "remove",
+        "action": "remove"
+    }
+]

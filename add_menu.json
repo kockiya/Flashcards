@@ -1,0 +1,29 @@
+[
+	{
+        "type": "title",
+        "title": "Deck Settings"
+    },
+    {
+    	"type": "string",
+    	"title": "Question",
+    	"desc": "The card's question",
+    	"section":"add",
+    	"key":"question"
+    },
+    {
+    	"type": "string",
+    	"title": "Answer",
+    	"desc": "The card's answer",
+    	"section":"add",
+    	"key":"answer"
+    },
+    {
+    	"type": "action",
+    	"title": "Create",
+    	"desc": "Add the card using the previous parameters.",
+    	"action":"add",
+    	"section":"add",
+    	"key":"make"
+    }
+    
+]

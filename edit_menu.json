@@ -1,0 +1,45 @@
+[
+	{
+        "type": "title",
+        "title": "Deck Settings"
+    },
+    {
+    	"type": "string",
+    	"title": "Question",
+    	"desc": "The card's question",
+    	"section":"edit",
+    	"key":"question",
+    	"disabled":"True"
+    },
+    {
+    	"type": "string",
+    	"title": "Answer",
+    	"desc": "The card's answer"	,
+    	"section":"edit",
+    	"key":"answer",
+    	"disabled":"True"
+    },
+        {
+    	"type": "string",
+    	"title": "New Question",
+    	"desc": "The new question to replace the old one with",
+    	"section":"edit",
+    	"key":"nquestion"
+    },
+    {
+    	"type": "string",
+    	"title": "New Answer",
+    	"desc": "The new answer to replace the old one with",
+    	"section":"edit",
+    	"key":"nanswer"
+    },
+    {
+    	"type": "action",
+    	"title": "Edit",
+    	"desc": "Change the selected card using the previous parameters.",
+    	"action":"edit",
+    	"section":"edit",
+    	"key":"edit"
+    }
+    
+]
