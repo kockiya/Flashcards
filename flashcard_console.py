@@ -135,7 +135,7 @@ def main():
                     answer = "P#"+answer
                 else:
                     answer = "A#"+answer
-                d.set_selected(question, answer)
+                d.edit_selected(question, answer)
             else:
                 print("Error - Cannot edit cards when the deck is empty")
         elif main_select == 'r':
