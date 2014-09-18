@@ -75,6 +75,12 @@ class Deck:
         self.p_index = 0
         
         self.mode = None
+        
+        #if self.cards == []:
+        #    self.empty_flag = True if len(cards) == 0 else False
+        #    self += Card('''Q#The deck is empty~''', '''A#You can add a card by going back to the menu!''')
+        #    self.s_index = 0
+        #    self.selected = self.cards[self.s_index]
     
     def get_selected(self):
         ''' 
@@ -132,7 +138,8 @@ class Deck:
         else:
             return False
     
-    
+    def is_empty(self):
+        return len(self) <= 0
     
         
     def next(self, mode=None):
@@ -278,6 +285,10 @@ class Deck:
             print("Error processing file")
             return False
     
+    
+    def can_undo(self):
+        return self.h_index > 0
+    
     def undo(self):
         ''' 
         Works by restoring a string representation of the cards in the deck and the selected card.
@@ -297,13 +308,16 @@ class Deck:
             return True
         else:
             return False
-        
+
+    def can_redo(self):
+        return self.h_index < len(self.history)-1
+    
     def redo(self):
         '''
         Works by undoing the undo's. If the undo process is interrupted by a deck change, there will
         (probably) be nothing to redo due to the history overwrite..
         '''
-        if self.h_index < len(self.history)-1:
+        if self.can_redo():
             self.h_index += 1
             d = eval(self.history[self.h_index])
             self.cards = d.cards
@@ -314,6 +328,8 @@ class Deck:
             return True
         else:
             return False
+        
+    
         
     
 if __name__ == '__main__':
