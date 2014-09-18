@@ -96,6 +96,7 @@ class Deck:
         ''' 
         Add a car dto the deck; can add Deck + Card or Deck + Deck.
         '''
+        print("Right:", right, "  Type:", type(right), " ==Card:", type(right)==Card)
         if type(right) == Card:
             self.history[self.h_index] = self.__repr__()
             self.cards += [right]
